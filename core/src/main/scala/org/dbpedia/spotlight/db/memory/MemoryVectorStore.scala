@@ -8,10 +8,16 @@ import org.dbpedia.spotlight.model.{TokenType, DBpediaResource}
 /**
  * Created by dowling on 09/07/15.
  */
+@SerialVersionUID(1008001)
 class MemoryVectorStore extends MemoryStore with KryoSerializable{
 
+  @transient
   var vectors: DenseMatrix[Float] = null
+
+  @transient
   var resourceIdToVectorIndex: Map[Int, Int] = null
+
+  @transient
   var tokenTypeIdToVectorIndex: Map[Int, Int] = null
 
   override def size: Int = vectors.rows
@@ -26,18 +32,18 @@ class MemoryVectorStore extends MemoryStore with KryoSerializable{
   }
 
   def _on_nil_index(string: String) = {
-    println("Warning: token " + string + " not in dictionary! Lookup returning null vector.")
+    //println("Warning: token " + string + " not in dictionary! Lookup returning null vector.")
     -1
   }
 
   def lookup(resource: DBpediaResource): Transpose[DenseVector[Float]]={
-    println("Looking up " + resource + "..")
+    //println("Looking up " + resource + "..")
     _lookup(resourceIdToVectorIndex.getOrElse(resource.id, _on_nil_index(resource.getFullUri)))
 
   }
 
   def lookup(token: TokenType): Transpose[DenseVector[Float]]={
-    println("Looking up " + token + "..")
+    //println("Looking up " + token + "..")
     _lookup(tokenTypeIdToVectorIndex.getOrElse(token.id, _on_nil_index(token.tokenType)))
 
   }
@@ -52,16 +58,19 @@ class MemoryVectorStore extends MemoryStore with KryoSerializable{
       }
     }
     output.writeString("# RESOURCEDICT")
+    output.writeInt(resourceIdToVectorIndex.size)
     resourceIdToVectorIndex.foreach { case(key, value) =>
       output.writeInt(key)
       output.writeInt(value)
     }
     output.writeString("# TOKENDICT")
+    output.writeInt(tokenTypeIdToVectorIndex.size)
     tokenTypeIdToVectorIndex.foreach { case(key, value) =>
       output.writeInt(key)
       output.writeInt(value)
     }
     output.writeChar('#')
+    output.close()
 
   }
 
@@ -79,15 +88,18 @@ class MemoryVectorStore extends MemoryStore with KryoSerializable{
     }
     
     assert(input.readString() == "# RESOURCEDICT")
-    resourceIdToVectorIndex = (0 to rows-1).map { i =>
+    val resourceNum = input.readInt()
+    resourceIdToVectorIndex = (0 to resourceNum-1).map { i =>
       (input.readInt(), input.readInt())
     }.toMap
+
     assert(input.readString() == "# TOKENDICT")
-
-    tokenTypeIdToVectorIndex = (0 to rows-1).map { i =>
+    val tokenNum = input.readInt()
+    tokenTypeIdToVectorIndex = (0 to tokenNum-1).map { i =>
       (input.readInt(), input.readInt())
     }.toMap
 
-    assert(input.readString() == "#")
+    assert(input.readChar() == '#')
+    input.close()
   }
 }

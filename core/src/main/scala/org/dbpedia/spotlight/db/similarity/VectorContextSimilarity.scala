@@ -8,6 +8,7 @@ import org.dbpedia.spotlight.util.MathUtil
 import org.dbpedia.spotlight.util.MathUtil.{cosineSimilarity, LOGZERO}
 
 import scala.collection.mutable
+import scala.util.Random
 
 
 /**
@@ -32,6 +33,7 @@ case class VectorContextSimilarity(tokenTypeStore: TokenTypeStore, memoryVectorS
             memoryVectorStore.lookup(resource)
           )
         )
+        //Random.nextDouble()
       )
     }
     )
