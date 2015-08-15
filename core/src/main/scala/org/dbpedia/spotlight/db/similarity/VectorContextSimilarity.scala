@@ -78,7 +78,7 @@ case class VectorContextSimilarity(tokenTypeStore: TokenTypeStore, memoryVectorS
    *
    * In the generative model, this is: \product_i P_LM(token_i)
    *
-   * TODO: what is this in the log-linear model?
+   * TODO: what is this in a vector space model? We might need a NIL entity vector
    *
    * @param query the text context of the document
    * @return
@@ -89,6 +89,5 @@ case class VectorContextSimilarity(tokenTypeStore: TokenTypeStore, memoryVectorS
         MathUtil.lnproduct(MathUtil.ln(1-lambda), pLM(t))
       }
     )
-    //LOGZERO
   }
 }
